@@ -9,15 +9,15 @@ import exp from 'constants';
 // import { stderr, stdout } from 'process';
 // import { error } from 'console';
 const db = './db.json';
-import cors from 'cors';
-const app = express();
-app.use(express.json());
-app.use(
-  cors({
-    origin: ['http://localhost:8080', 'http://localhost:5173'],
-    credentials: true,
-  })
-);
+export const ffmpeg = (app) => {
+
+// app.use(express.json());
+// app.use(
+//   cors({
+//     origin: ['http://localhost:8080', 'http://localhost:5173'],
+//     credentials: true,
+//   })
+// );
 app.use('/uploads', express.static('uploads'))
 app.use(express.urlencoded({ extended: true }));
 const storage = multer.diskStorage({
@@ -88,7 +88,8 @@ app.post('/upload', upload.single('file'), async function (req, res) {
     
   });
 });
-
-app.listen(8080, function () {
-  console.log('App is listening at port 8080...');
-});
+console.log('App is using ffmpeg at port 8080...');
+// app.listen(8080, function () {
+//   console.log('App is listening at port 8080...');
+// });
+};

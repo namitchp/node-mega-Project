@@ -1,6 +1,6 @@
 import { Server } from "socket.io";
-import { createServer } from "http";
-const server = createServer(app);
+import cookieParser from 'cookie-parser';
+export const Socket=(server) => {
 const io = new Server(server, {
   cors: {
     origin: "http://localhost:5173",
@@ -8,9 +8,9 @@ const io = new Server(server, {
     credentials: true,
   },
 });
-app.get("/", (req, res) => {
-  res.send("Hello World!");
-});
+// app.get("/", (req, res) => {
+//   res.send("Hello World!");
+// });
 
 io.use((socket, next) => {
   cookieParser()(socket.request, socket.request.res, (err) => {
@@ -41,3 +41,4 @@ io.on("connection", (socket) => {
     console.log("User Disconnected", socket.id);
   })
 });
+}
