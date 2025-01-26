@@ -9,7 +9,7 @@ import { ffmpeg } from './ffmpeg.js';
 const app = express();
 //multer middleware
 app.use(express.json());
-// app.use('/ffmpeg', ffmpegRoute);
+app.use('/ffmpeg', ffmpeg);
 app.use(express.urlencoded({ extended: true }));
 // appPage();
 // app.use(appPage());
@@ -44,7 +44,7 @@ app.get('/login', (req, res) => {
 
 
 Socket(httpServer,app);
-ffmpeg(app);
+// ffmpeg(app);
 
 // const instance = autocannon({
 //   url: 'http://localhost:8000/api',
