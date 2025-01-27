@@ -65,7 +65,7 @@ app.post('/upload', upload.single('file'), async function (req, res) {
     }
     console.log(`stdout: ${stdout}`)
     console.log(`stderr: ${stderr}`)
-    const videoUrl = `http://localhost:8000/uploads/courses/${lessonId}/index.m3u8`;
+    const videoUrl = `http://148.72.168.56:8001/uploads/courses/${lessonId}/index.m3u8`;
     //insert BD;
     fs.readFile(db, 'utf8', function (err, data) {
       if (err) throw err;
