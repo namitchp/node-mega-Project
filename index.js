@@ -7,30 +7,28 @@ import autocannon from 'autocannon';
 import { Socket } from './socket.js';
 import { ffmpeg } from './ffmpeg.js';
 const app = express();
+app.use(cors());
 //multer middleware
 app.use(express.json());
-app.use('/ffmpeg', ffmpeg);
-app.use(express.urlencoded({ extended: true }));
-// appPage();
-// app.use(appPage());
 const httpServer = createServer(app);
+app.use('/uploads', express.static('uploads'))
+app.use(express.urlencoded({ extended: true }));
+// app.use(
+//   cors({
+//     origin: 'http://localhost:5173',
+//     credentials: true,
+//     methods: ['GET', 'POST'],
+//   })
+// );
 
-app.use(
-  cors({
-    origin: 'http://localhost:5173',
-    credentials: true,
-    methods: ['GET', 'POST'],
-  })
-);
-
-app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', '*'); // watch it
-  res.header(
-    'Access-Control-Allow-Headers',
-    'Origin, X-Requested-With, Content-Type, Accept'
-  );
-  next();
-});
+// app.use((req, res, next) => {
+//   res.header('Access-Control-Allow-Origin', '*'); // watch it
+//   res.header(
+//     'Access-Control-Allow-Headers',
+//     'Origin, X-Requested-With, Content-Type, Accept'
+//   );
+//   next();
+// });
 
 app.get('/login', (req, res) => {
   const token = jwt.sign({ _id: 'asdasjdhkasdasdas' }, secretKeyJWT);
@@ -43,8 +41,8 @@ app.get('/login', (req, res) => {
 });
 
 
-Socket(httpServer,app);
-// ffmpeg(app);
+// Socket(httpServer,app);
+ffmpeg(app);
 
 // const instance = autocannon({
 //   url: 'http://localhost:8000/api',

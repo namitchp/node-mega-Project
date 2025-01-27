@@ -18,8 +18,7 @@ export const ffmpeg = (app) => {
 //     credentials: true,
 //   })
 // );
-app.use('/uploads', express.static('uploads'))
-app.use(express.urlencoded({ extended: true }));
+
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
       cb(null, './uploads');
@@ -66,7 +65,7 @@ app.post('/upload', upload.single('file'), async function (req, res) {
     }
     console.log(`stdout: ${stdout}`)
     console.log(`stderr: ${stderr}`)
-    const videoUrl = `http://localhost:8080/uploads/courses/${lessonId}/index.m3u8`;
+    const videoUrl = `http://localhost:8000/uploads/courses/${lessonId}/index.m3u8`;
     //insert BD;
     fs.readFile(db, 'utf8', function (err, data) {
       if (err) throw err;
@@ -88,7 +87,7 @@ app.post('/upload', upload.single('file'), async function (req, res) {
     
   });
 });
-console.log('App is using ffmpeg at port 8080...');
+console.log('App is using ffmpeg at port 8000...');
 // app.listen(8080, function () {
 //   console.log('App is listening at port 8080...');
 // });
