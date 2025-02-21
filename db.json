@@ -1,7 +1,1 @@
-[
-    {
-        "id": 1,
-        "videoUrl": "http://localhost:8000/video/stream/92174bd0-9d83-48f9-815d-420109257b2e/index.m3u8",
-        "lessonId": "92174bd0-9d83-48f9-815d-420109257b2e"
-    }
-]
+[{"id":1,"videoUrl":"http://localhost:8000/video/stream/92174bd0-9d83-48f9-815d-420109257b2e/index.m3u8","lessonId":"92174bd0-9d83-48f9-815d-420109257b2e"},{"id":2,"videoUrl":"http://148.72.168.56:8001/uploads/courses/f18c955d-797e-4f9c-b840-969f5628132f/index.m3u8","lessonId":"f18c955d-797e-4f9c-b840-969f5628132f"},{"id":3,"videoUrl":"http://148.72.168.56:8001/uploads/courses/e40877b4-bf6d-4514-94d0-49aadcfc4c29/index.m3u8","lessonId":"e40877b4-bf6d-4514-94d0-49aadcfc4c29"}]
