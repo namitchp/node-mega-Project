@@ -5,6 +5,7 @@ import cors from "cors";
 import { Server } from "socket.io";
 import fs from "fs";
 import tokenBucket from "./tokenBucket"; // Import Token Bucket middleware
+import BloomFilter from "./bloomFilter"; // Import Bloom Filter
 
 const app = express();
 const server = http.createServer(app);
@@ -13,6 +14,8 @@ const io = new Server(server, { cors: { origin: "*" } });
 app.use(cors());
 app.use(express.json());
 app.use(tokenBucket); // Use Token Bucket middleware
+
+const bloomFilter = new BloomFilter(); // Initialize Bloom Filter
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
@@ -49,6 +52,17 @@ app.post("/upload", upload.single('file'), (req, res) => {
   writeStream.on('error', (err) => {
     res.status(500).json({ error: err.message });
   });
+});
+
+// Example usage of Bloom Filter
+app.post("/check", (req, res) => {
+  const { value } = req.body;
+  if (bloomFilter.contains(value)) {
+    res.status(200).json({ message: "Value might be present" });
+  } else {
+    bloomFilter.add(value);
+    res.status(200).json({ message: "Value added to Bloom Filter" });
+  }
 });
 
 // Start server
