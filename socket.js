@@ -26,7 +26,8 @@ io.use((socket, next) => {
 
 io.on("connection", (socket) => {
   console.log("User Connected", socket.id);
-
+  console.log("User Connected", socket);
+  socket.to(socket.id).emit("receive-message", "hello");
   socket.on("message", ({ room, message }) => {
     console.log({ room, message });
     socket.to(room).emit("receive-message", message);
