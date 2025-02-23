@@ -1,11 +1,11 @@
 
 import multer from 'multer';
-import express from 'express';
+// import express from 'express';
 import { v4 as uuidv4 } from 'uuid';
 import path from 'path';
 import fs from 'fs';
 import { exec } from 'child_process'; // watch out
-import exp from 'constants';
+// import exp from 'constants';
 // import { stderr, stdout } from 'process';
 // import { error } from 'console';
 const db = './db.json';
@@ -77,8 +77,6 @@ app.post('/upload', upload.single('file'), async function (req, res) {
         }
       });
     });
-
-
       res.json({
         message: 'Video converted to HLS format',
         videoUrl: videoUrl,
