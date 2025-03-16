@@ -14,7 +14,8 @@ app.use(cors());
 //multer middleware
 app.use(express.json());
 const httpServer = createServer(app);
-// app.use('/uploads', express.static('uploads'))
+app.use('/uploads', express.static('uploads'))
+app.use(express.static('./uploads'));
 app.use(express.urlencoded({ extended: false }));
 // const __filename = fileURLToPath(import.meta.url); // get the resolved path to the file
 // const __dirname = path.dirname(__filename); // get the name of the directory
@@ -26,7 +27,6 @@ app.use(express.urlencoded({ extended: false }));
 //     methods: ['GET', 'POST'],
 //   })
 // );
-
 // app.use((req, res, next) => {
 //   res.header('Access-Control-Allow-Origin', '*'); // watch it
 //   res.header(
@@ -35,10 +35,8 @@ app.use(express.urlencoded({ extended: false }));
 //   );
 //   next();
 // });
-
 app.get('/login', (req, res) => {
   const token = jwt.sign({ _id: 'asdasjdhkasdasdas' }, secretKeyJWT);
-
   res
     .cookie('token', token, { httpOnly: true, secure: true, sameSite: 'none' })
     .json({
@@ -47,8 +45,7 @@ app.get('/login', (req, res) => {
 });
 imageOptimizationFun(app);
 // Socket(httpServer,app);
-// ffmpeg(app);
-
+ffmpeg(app);
 // const instance = autocannon({
 //   url: 'http://localhost:8000/api',
 //   duration: 30
