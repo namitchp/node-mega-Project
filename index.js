@@ -6,13 +6,19 @@ import autocannon from 'autocannon';
 // import { appPage } from './app.js';
 import { Socket } from './socket.js';
 import { ffmpeg } from './ffmpeg.js';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import { imageOptimizationFun} from './imageOptimizer.js';
 const app = express();
 app.use(cors());
 //multer middleware
 app.use(express.json());
 const httpServer = createServer(app);
-app.use('/uploads', express.static('uploads'))
-app.use(express.urlencoded({ extended: true }));
+// app.use('/uploads', express.static('uploads'))
+app.use(express.urlencoded({ extended: false }));
+// const __filename = fileURLToPath(import.meta.url); // get the resolved path to the file
+// const __dirname = path.dirname(__filename); // get the name of the directory
+// console.log(__dirname)
 // app.use(
 //   cors({
 //     origin: 'http://localhost:5173',
@@ -39,10 +45,9 @@ app.get('/login', (req, res) => {
       message: 'Login Success',
     });
 });
-
-
-Socket(httpServer,app);
-ffmpeg(app);
+imageOptimizationFun(app);
+// Socket(httpServer,app);
+// ffmpeg(app);
 
 // const instance = autocannon({
 //   url: 'http://localhost:8000/api',
