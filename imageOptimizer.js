@@ -1,12 +1,9 @@
 import multer from 'multer';
-// import { v4 as uuidv4 } from 'uuid';
-// import fs from 'fs';
 import sharp from 'sharp';
 import * as fs from 'fs';
 import { join } from 'path';
 import path from 'path';
 import { fileURLToPath } from 'url';
-// import { constants } from 'buffer';
 class imageOptimizer {
   uploadImageServer(file) {
     return file;
@@ -17,22 +14,14 @@ class imageOptimizer {
     return multer({
       storage: multer.diskStorage({
         destination: function (req, file, cb) {
-          // const {folderName}=req.query;
-          // console.log(req)
-          // Uploads is the Upload_folder_name path
           const filePath = `./uploads/image/original`;
-          //  if (!fs.existsSync(filePath)) {
-          //       fs.mkdirSync(filePath, { recursive: true });
-          //     }
           cb(null, filePath);
         },
-        // dest: filePath,
-        // destination:'./uploads'
         filename: function (req, file, cb) {
           const { folderName } = req.query;
           var ext = path.extname(file.originalname);
           var filename = path.basename(file.originalname, ext);
-          cb(null, folderName + '-' + filename + '-' + Date.now() + ext);
+          cb(null, `${folderName || 'folder'}-${filename}-${Date.now()}${ext}`);
         },
       }),
       // file size
@@ -66,9 +55,10 @@ class imageOptimizer {
     }
   }
   async originalImage(query, imagePath, res) {
+    const { name, width, height, quality, format } = query;
     let contentType;
     let isLossy = false;
-    switch (query.format) {
+    switch (format) {
       case 'jpeg':
         contentType = 'jpeg';
         isLossy = true;
@@ -91,26 +81,31 @@ class imageOptimizer {
         contentType = 'jpeg';
         isLossy = true;
     }
-    //   which folder you want to save the image
-    const directoryPathOriginal = this.fetchDirectory('original');
-    console.log(`${directoryPathOriginal}/${query.name}`);
-    let transformedImage = sharp(`${directoryPathOriginal}/${query.name}`, {
+    let transformedImage = sharp(imagePath.message, {
       failOn: 'none',
       animated: true,
     });
     const imageMetadata = await transformedImage.metadata();
     const resizingOptions = {
-      width: +query.width,
-      height: +query.height,
+      // width: +width,
+      // height: +height,
       // fit: sharp.fit.contain,
       // position: sharp.strategy.attention,
       // background: 'red',
     };
-    transformedImage = transformedImage.resize(resizingOptions);
+    if (width !== 'auto') {
+      resizingOptions.width = +width;
+    }
+    if (height !== 'auto') {
+      resizingOptions.height = +height;
+    }
+    if (Object.keys(resizingOptions).length > 0)
+      transformedImage = transformedImage.resize(resizingOptions);
+
     if (imageMetadata.orientation) transformedImage = transformedImage.rotate();
-    if (query.quality !== 'auto' && isLossy) {
+    if (quality !== 'auto' && isLossy) {
       transformedImage = transformedImage.toFormat(contentType, {
-        quality: parseInt(query.quality.toString()),
+        quality: parseInt(quality.toString()),
       });
     } else {
       transformedImage = transformedImage.toFormat(contentType);
@@ -118,25 +113,18 @@ class imageOptimizer {
     // transformedImage = transformedImage.toFormat(contentType as keyof sharp.FormatEnum, {
     //     quality: parseInt(query.quality.toString()),
     // });
-    const directoryPathTransformed = this.fetchDirectory('transformed');
+    const directoryPathTransformed = `${this.fetchDirectory('transformed')}/${
+      imagePath.fileName
+    }`;
     const transformedImageBuffer = await transformedImage.toBuffer();
-    sharp(transformedImageBuffer).toFile(
-      `${directoryPathTransformed}/${imagePath.fileName}`,
-      (err) => {
-        if (err) {
-          res
-            .status(HttpStatus.INTERNAL_SERVER_ERROR)
-            .send({ message: 'Image not found' });
-        }
-        this.transformedImageFun(
-          `${directoryPathTransformed}/${imagePath.fileName}`,
-          res
-        );
+    sharp(transformedImageBuffer).toFile(directoryPathTransformed, (err) => {
+      if (err) {
+        res.status(500).send({ message: 'Image not found' });
       }
-    );
+      this.transformedImageFun(directoryPathTransformed, res);
+    });
   }
   transformedImageFun(imagePath, res) {
-    console.log(imagePath);
     return res.status(200).sendFile(imagePath, (err) => {
       if (err) {
         res.status(404).send('Image not found');
@@ -146,18 +134,20 @@ class imageOptimizer {
   fetchDirectory(type) {
     const __filename = fileURLToPath(import.meta.url); // get the resolved path to the file
     const __dirname = path.dirname(__filename); // get the name of the directory
-    // console.log(__dirname)
     const imagePath = join(__dirname, `./uploads/image/${type}`);
     return imagePath;
   }
   fileAccess(reqObj, res) {
     const { name, width, height, quality, format } = reqObj;
-    const fileName = `name=${name}&width=${width}&height=${height}&quality=${quality}.${format}`;
+    const fileName = `name=${name}&width=${width}&height=${height}&quality=${quality}.${
+      format == 'auto' ? 'jpeg' : format
+    }`;
     let accessFolder = `${this.fetchDirectory('transformed')}/${fileName}`;
     if (fs.existsSync(accessFolder)) {
       return { message: accessFolder, valid: true, fileName };
     }
     accessFolder = `${this.fetchDirectory('original')}/${name}`;
+    console.log(accessFolder);
     if (fs.existsSync(accessFolder)) {
       return { message: accessFolder, valid: false, fileName };
     }
@@ -167,18 +157,20 @@ class imageOptimizer {
 export const imageOptimizationFun = (app) => {
   const classOptimization = new imageOptimizer();
   app.post(
-    '/upload',
+    '/v0/image/upload',
     classOptimization.imageUpload().single('file'),
     (req, res) => {
+      const fullUrl = `${req.protocol}://${req.get('host')}/v0/image/get?name=${
+        req.file.filename
+      }&format=auto&width=auto&height=auto&quality=auto`;
       res.status(200).json({
         message: 'Success',
-        data: req.file,
+        data: req.file.filename,
+        url: fullUrl,
       });
-      // console.log('hello');
-      // classOptimization.imageGet(req.query, res);
     }
   );
-  app.get('/image', (req, res) => {
+  app.get('/v0/image/get', (req, res) => {
     classOptimization.imageGet(req.query, res);
   });
 };
