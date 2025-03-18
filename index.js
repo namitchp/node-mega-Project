@@ -6,20 +6,14 @@ import autocannon from 'autocannon';
 // import { appPage } from './app.js';
 import { Socket } from './socket.js';
 import { ffmpeg } from './ffmpeg.js';
-import path from 'path';
-import { fileURLToPath } from 'url';
 import { imageOptimizationFun} from './imageOptimizer.js';
 const app = express();
 app.use(cors());
-//multer middleware
+//multer middleware 
 app.use(express.json());
 const httpServer = createServer(app);
 app.use('/uploads', express.static('uploads'))
-app.use(express.static('./uploads'));
 app.use(express.urlencoded({ extended: false }));
-// const __filename = fileURLToPath(import.meta.url); // get the resolved path to the file
-// const __dirname = path.dirname(__filename); // get the name of the directory
-// console.log(__dirname)
 // app.use(
 //   cors({
 //     origin: 'http://localhost:5173',
@@ -27,18 +21,10 @@ app.use(express.urlencoded({ extended: false }));
 //     methods: ['GET', 'POST'],
 //   })
 // );
-// app.use((req, res, next) => {
-//   res.header('Access-Control-Allow-Origin', '*'); // watch it
-//   res.header(
-//     'Access-Control-Allow-Headers',
-//     'Origin, X-Requested-With, Content-Type, Accept'
-//   );
-//   next();
-// });
 app.get('/login', (req, res) => {
   const token = jwt.sign({ _id: 'asdasjdhkasdasdas' }, secretKeyJWT);
   res
-    .cookie('token', token, { httpOnly: true, secure: true, sameSite: 'none' })
+    .cookie('token',token, { httpOnly: true, secure: true, sameSite: 'none' })
     .json({
       message: 'Login Success',
     });
