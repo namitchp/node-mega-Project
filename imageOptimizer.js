@@ -1,34 +1,32 @@
 import multer from 'multer';
 import sharp from 'sharp';
 import * as fs from 'fs';
-import { join } from 'path';
 import path from 'path';
 import { fileURLToPath } from 'url';
 class imageOptimizer {
-  uploadImageServer(file) {
-    return file;
-  }
   imageUpload() {
     // const filePath='./uploads/image/original';
     const fileSize = 20;
     return multer({
       storage: multer.diskStorage({
         destination: function (req, file, cb) {
-          const filePath = `./uploads/image/original`;
+          const { folderName } = req.query;
+          const filePath = `uploads/image/original/${folderName}`;
+
+          if (!fs.existsSync(filePath)) {
+            fs.mkdirSync(filePath, { recursive: true });
+          }
           cb(null, filePath);
         },
         filename: function (req, file, cb) {
-          const { folderName } = req.query;
           var ext = path.extname(file.originalname);
           var filename = path.basename(file.originalname, ext);
-          cb(null, `${folderName || 'folder'}-${filename}-${Date.now()}${ext}`);
+          cb(null, `${filename}-${Date.now()}${ext}`);
         },
       }),
       // file size
       limits: { fileSize: 1024 * 1024 * fileSize },
       fileFilter: function (req, file, cb) {
-        console.log(file.originalname);
-        console.log(file.mimetype);
         // Set the filetypes, it is optional
         var filetypes = /jpeg|jpg|png|pdf/;
         var mimetype = filetypes.test(file.mimetype);
@@ -55,7 +53,7 @@ class imageOptimizer {
     }
   }
   async originalImage(query, imagePath, res) {
-    const { name, width, height, quality, format } = query;
+    const { width, height, quality, format } = query;
     let contentType;
     let isLossy = false;
     switch (format) {
@@ -119,7 +117,8 @@ class imageOptimizer {
     const transformedImageBuffer = await transformedImage.toBuffer();
     sharp(transformedImageBuffer).toFile(directoryPathTransformed, (err) => {
       if (err) {
-        res.status(500).send({ message: 'Image not found' });
+        res.status(500).send({ message: 'Image not found123' });
+        return;
       }
       this.transformedImageFun(directoryPathTransformed, res);
     });
@@ -127,19 +126,24 @@ class imageOptimizer {
   transformedImageFun(imagePath, res) {
     return res.status(200).sendFile(imagePath, (err) => {
       if (err) {
-        res.status(404).send('Image not found');
+        res.status(404).send('Image not found132');
+        return
       }
     });
   }
   fetchDirectory(type) {
     const __filename = fileURLToPath(import.meta.url); // get the resolved path to the file
     const __dirname = path.dirname(__filename); // get the name of the directory
-    const imagePath = join(__dirname, `./uploads/image/${type}`);
+    const imagePath = path.join(__dirname, `./uploads/image/${type}`);
+
+    if (!fs.existsSync(imagePath)) {
+      fs.mkdirSync(imagePath, { recursive: true });
+    }
     return imagePath;
   }
   fileAccess(reqObj, res) {
     const { name, width, height, quality, format } = reqObj;
-    const fileName = `name=${name}&width=${width}&height=${height}&quality=${quality}.${
+    const fileName = `${name.replace("/",'-')}&width=${width}&height=${height}&quality=${quality}.${
       format == 'auto' ? 'jpeg' : format
     }`;
     let accessFolder = `${this.fetchDirectory('transformed')}/${fileName}`;
@@ -147,25 +151,34 @@ class imageOptimizer {
       return { message: accessFolder, valid: true, fileName };
     }
     accessFolder = `${this.fetchDirectory('original')}/${name}`;
-    console.log(accessFolder);
     if (fs.existsSync(accessFolder)) {
       return { message: accessFolder, valid: false, fileName };
     }
-    res.status(404).send({ message: 'Image not found' });
+    res.status(404).send({ message: 'Image not found159' });
   }
 }
 export const imageOptimizationFun = (app) => {
   const classOptimization = new imageOptimizer();
   app.post(
     '/v0/image/upload',
+    (req, res, next) => {
+      if (Object.keys(req.query).length == 0) {
+        res.json({
+          message: 'What is folderName',
+          valid: false,
+        });
+      } else {
+        next();
+      }
+    },
     classOptimization.imageUpload().single('file'),
     (req, res) => {
       const fullUrl = `${req.protocol}://${req.get('host')}/v0/image/get?name=${
-        req.file.filename
+        req.file.path.split("original/")[1]
       }&format=auto&width=auto&height=auto&quality=auto`;
       res.status(200).json({
         message: 'Success',
-        data: req.file.filename,
+        data: req.file.path,
         url: fullUrl,
       });
     }
